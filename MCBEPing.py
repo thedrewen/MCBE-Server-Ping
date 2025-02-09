@@ -52,13 +52,18 @@ def ping(host, port=19132, timeout=5):
         ping_packet = create_unconnected_ping_frame(timestamp)
         
         try:
+            start_time = time.time()
             sock.sendto(ping_packet, (host, port))
             pong_packet, _ = sock.recvfrom(4096)
+            end_time = time.time()
             
             if not pong_packet or pong_packet[0] != UNCONNECTED_PONG:
                 raise ValueError("Unexpected packet received")
             
-            return extract_modt(pong_packet)
+            server_ping = int((end_time - start_time) * 1000)  # Convert to milliseconds
+            response = extract_modt(pong_packet)
+            response["ping"] = server_ping
+            return response
         except socket.timeout:
             raise TimeoutError("Socket timeout")
         except Exception as e:
