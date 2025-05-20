@@ -69,9 +69,39 @@ def ping(host, port=19132, timeout=5):
         except Exception as e:
             raise e
 
+class ServerVersion:
+    def __init__(self, protocolVersion : int, minecraftVersion : str):
+        self.protocolVersion = protocolVersion
+        self.minecraftVersion = minecraftVersion
+
+class ServerPlayers:
+    def __init__(self, online : int, max: int):
+        self.online = online
+        self.max = max
+
+class PingResult:
+    def __init__(self, edition : str, name : str, version : ServerVersion, players : ServerPlayers, serverId : int, mapName : str, gameMode : str, ping : int):
+        self.edition = edition
+        self.name = name
+        self.version = version
+        self.players = players
+        self.serverId = serverId
+        self.mapName = mapName
+        self.gameMode = gameMode
+        self.ping = ping
 
 def ping_bedrock(host, port=19132, timeout=5):
     if not host:
         raise ValueError("Host argument is not provided")
     
-    return ping(host, port, timeout)
+    result = ping(host, port, timeout)
+    return PingResult(
+        result['edition'],
+        result['name'],
+        ServerVersion(result['version']['protocolVersion'], result['version']['minecraftVersion']),
+        ServerPlayers(result['players']['online'], result['players']['max']),
+        result['serverId'],
+        result['mapName'],
+        result['gameMode'],
+        result['ping']
+    )
